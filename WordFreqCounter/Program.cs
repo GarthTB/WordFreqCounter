@@ -1,6 +1,6 @@
 ﻿namespace WordFreqCounter
 {
-    internal class Program
+    internal static class Program
     {
         private static int GetWordLength()
         {
@@ -65,8 +65,8 @@
                         HashSet<int> extraChars = new(0);
                         foreach (char c in args[3])
                             extraChars.Add(c);
-                        Counter counter = new(args[1], writePath, extraChars, wordLength, filter);
-                        counter.Run();
+                        Counter.SetCounter(args[1], writePath, extraChars, wordLength, filter);
+                        Counter.Run();
                     }
                 }
             }
@@ -83,8 +83,8 @@
                 string writePath = Path.Combine(Path.GetDirectoryName(readPath) ?? ".", $"{wordLength}字统计结果.txt");
                 int filter = GetFilter();
                 HashSet<int> extraChars = GetExtraChars();
-                Counter counter = new(readPath, writePath, extraChars, wordLength, filter);
-                counter.Run();
+                Counter.SetCounter(readPath, writePath, extraChars, wordLength, filter);
+                Counter.Run();
                 Console.Write("按任意键重新指定参数并进行新一轮统计。");
                 Console.ReadKey();
             }

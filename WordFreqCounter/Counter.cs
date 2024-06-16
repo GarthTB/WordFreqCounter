@@ -4,31 +4,31 @@ using System.Text;
 
 namespace WordFreqCounter
 {
-    internal class Counter
+    internal struct Counter
     {
-        private readonly string _readPath;
-        private readonly string _writePath;
-        private readonly HashSet<int> _extraChars;
-        private readonly Dictionary<string, int> _freqDict;
-        private readonly Dictionary<string, int> _resultDict;
-        private readonly int _wordLength;
-        private readonly int _windowSize;
-        private readonly int _filter;
+        private static string _readPath = string.Empty;
+        private static string _writePath = string.Empty;
+        private static HashSet<int> _extraChars = new(0);
+        private static Dictionary<string, int> _freqDict = new(131072);
+        private static Dictionary<string, int> _resultDict = new(65536);
+        private static int _wordLength;
+        private static int _windowSize;
+        private static int _filter;
 
-        public Counter(string readPath, string writePath, HashSet<int> extraChars, int wordLength, int filter)
+        public static void SetCounter(string readPath, string writePath, HashSet<int> extraChars, int wordLength, int filter)
         {
+            _freqDict = new Dictionary<string, int>(131072);
+            _resultDict = new Dictionary<string, int>(65536);
             _readPath = readPath;
             _writePath = writePath;
             _extraChars = extraChars;
-            _freqDict = new Dictionary<string, int>(131072);
-            _resultDict = new Dictionary<string, int>(65536);
             _wordLength = wordLength;
             _windowSize = wordLength * 2 - 1;
             _filter = filter;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private void LoadAllWords()
+        private static void LoadAllWords()
         {
             using StreamReader sr = new(_readPath, Encoding.UTF8);
             StringBuilder sb = new(_wordLength);
@@ -57,7 +57,7 @@ namespace WordFreqCounter
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private void LoadGoodWords()
+        private static void LoadGoodWords()
         {
             using StreamReader sr = new(_readPath, Encoding.UTF8);
             StringBuilder sb = new(_windowSize);
@@ -99,7 +99,7 @@ namespace WordFreqCounter
             }
         }
 
-        private IEnumerable<KeyValuePair<string, int>> Sort()
+        private static IEnumerable<KeyValuePair<string, int>> Sort()
         {
             return _filter > 1
                 ? _resultDict.Where(x => x.Value >= _filter)
@@ -107,7 +107,7 @@ namespace WordFreqCounter
                 : _resultDict.OrderByDescending(x => x.Value);
         }
 
-        private void Output(IEnumerable<KeyValuePair<string, int>> sortedDict)
+        private static void Output(IEnumerable<KeyValuePair<string, int>> sortedDict)
         {
             if (!sortedDict.Any()) throw new InvalidOperationException("没有符合条件的词。");
             using StreamWriter writer = new(_writePath, false, Encoding.UTF8);
@@ -116,7 +116,7 @@ namespace WordFreqCounter
                 writer.WriteLine($"{item.Key}\t{item.Value}");
         }
 
-        public void Run()
+        public static void Run()
         {
             try
             {
