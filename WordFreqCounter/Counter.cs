@@ -9,16 +9,16 @@ namespace WordFreqCounter
         private static string _readPath = string.Empty;
         private static string _writePath = string.Empty;
         private static HashSet<int> _extraChars = new(0);
-        private static Dictionary<string, int> _freqDict = new(131072);
-        private static Dictionary<string, int> _resultDict = new(65536);
+        private static readonly Dictionary<string, int> _freqDict = new(131072);
+        private static readonly Dictionary<string, int> _resultDict = new(65536);
         private static int _wordLength;
         private static int _windowSize;
         private static int _filter;
 
         public static void SetCounter(string readPath, string writePath, HashSet<int> extraChars, int wordLength, int filter)
         {
-            _freqDict = new Dictionary<string, int>(131072);
-            _resultDict = new Dictionary<string, int>(65536);
+            _freqDict.Clear();
+            _resultDict.Clear();
             _readPath = readPath;
             _writePath = writePath;
             _extraChars = extraChars;
@@ -79,15 +79,21 @@ namespace WordFreqCounter
                         sb.Remove(0, _wordLength);
                         int maxFreq = 0;
                         string maxWord = string.Empty;
-                        for (int j = 0; j < _wordLength; j++)
+                        unsafe
                         {
-                            string _word = window.Substring(j, _wordLength);
-                            ref var _freq = ref CollectionsMarshal.GetValueRefOrNullRef(_freqDict, _word);
-                            if (_freq < _filter) continue;
-                            if (_freq > maxFreq)
+                            fixed (char* windowPtr = window)
                             {
-                                maxFreq = _freq;
-                                maxWord = _word;
+                                for (int j = 0; j < _wordLength; j++)
+                                {
+                                    string _word = new(windowPtr + j, 0, _wordLength);
+                                    ref var _freq = ref CollectionsMarshal.GetValueRefOrNullRef(_freqDict, _word);
+                                    if (_freq < _filter) continue;
+                                    if (_freq > maxFreq)
+                                    {
+                                        maxFreq = _freq;
+                                        maxWord = _word;
+                                    }
+                                }
                             }
                         }
                         if (maxFreq == 0) continue;
