@@ -86,11 +86,11 @@ namespace WordFreqCounter
                                 maxWord = _word;
                             }
                         }
-                        tail++;
+                        tail += _wordLength;
                         if (maxFreq == 0) continue;
                         ref var freq = ref CollectionsMarshal.GetValueRefOrNullRef(_resultDict, maxWord);
                         if (Unsafe.IsNullRef(ref freq)) _resultDict.Add(maxWord, 1);
-                        else freq += _wordLength;
+                        else freq++;
                     }
                 }
             }
