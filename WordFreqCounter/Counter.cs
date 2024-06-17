@@ -90,7 +90,7 @@ namespace WordFreqCounter
                         if (maxFreq == 0) continue;
                         ref var freq = ref CollectionsMarshal.GetValueRefOrNullRef(_resultDict, maxWord);
                         if (Unsafe.IsNullRef(ref freq)) _resultDict.Add(maxWord, 1);
-                        else freq++;
+                        else freq += _wordLength;
                     }
                 }
             }
