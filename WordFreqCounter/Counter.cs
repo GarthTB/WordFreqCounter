@@ -31,26 +31,25 @@ namespace WordFreqCounter
         private static void LoadAllWords()
         {
             using StreamReader sr = new(_readPath, Encoding.UTF8);
-            StringBuilder sb = new(_wordLength);
             while (!sr.EndOfStream)
             {
+                int tail = 0;
                 var span = sr.ReadLine().AsSpan();
-                for (int i = 0; i < span.Length; i++)
+                for (int head = 0; head < span.Length; head++)
                 {
-                    var c = span[i];
+                    var c = span[head];
                     if ((c < '一' || c > '鿿') && !_extraChars.Contains(c))
                     {
-                        sb.Clear();
+                        tail = head + 1;
                         continue;
                     }
-                    sb.Append(c);
-                    if (sb.Length == _wordLength)
+                    if (head == tail + _wordLength - 1)
                     {
-                        var word = sb.ToString();
+                        string word = new(span.Slice(tail, _wordLength));
                         ref var freq = ref CollectionsMarshal.GetValueRefOrNullRef(_freqDict, word);
                         if (Unsafe.IsNullRef(ref freq)) _freqDict.Add(word, 1);
                         else freq++;
-                        sb.Remove(0, 1);
+                        tail++;
                     }
                 }
             }
@@ -60,42 +59,34 @@ namespace WordFreqCounter
         private static void LoadGoodWords()
         {
             using StreamReader sr = new(_readPath, Encoding.UTF8);
-            StringBuilder sb = new(_windowSize);
             while (!sr.EndOfStream)
             {
+                int tail = 0;
                 var span = sr.ReadLine().AsSpan();
-                for (int i = 0; i < span.Length; i++)
+                for (int head = 0; head < span.Length; head++)
                 {
-                    var c = span[i];
+                    var c = span[head];
                     if ((c < '一' || c > '鿿') && !_extraChars.Contains(c))
                     {
-                        sb.Clear();
+                        tail = head + 1;
                         continue;
                     }
-                    sb.Append(c);
-                    if (sb.Length == _windowSize)
+                    if (head == tail + _windowSize - 1)
                     {
-                        string window = sb.ToString();
-                        sb.Remove(0, _wordLength);
                         int maxFreq = 0;
                         string maxWord = string.Empty;
-                        unsafe
+                        for (int j = 0; j < _wordLength; j++)
                         {
-                            fixed (char* windowPtr = window)
+                            string _word = new(span.Slice(tail + j, _wordLength));
+                            ref var _freq = ref CollectionsMarshal.GetValueRefOrNullRef(_freqDict, _word);
+                            if (_freq < _filter) continue;
+                            if (_freq > maxFreq)
                             {
-                                for (int j = 0; j < _wordLength; j++)
-                                {
-                                    string _word = new(windowPtr + j, 0, _wordLength);
-                                    ref var _freq = ref CollectionsMarshal.GetValueRefOrNullRef(_freqDict, _word);
-                                    if (_freq < _filter) continue;
-                                    if (_freq > maxFreq)
-                                    {
-                                        maxFreq = _freq;
-                                        maxWord = _word;
-                                    }
-                                }
+                                maxFreq = _freq;
+                                maxWord = _word;
                             }
                         }
+                        tail++;
                         if (maxFreq == 0) continue;
                         ref var freq = ref CollectionsMarshal.GetValueRefOrNullRef(_resultDict, maxWord);
                         if (Unsafe.IsNullRef(ref freq)) _resultDict.Add(maxWord, 1);
@@ -126,6 +117,7 @@ namespace WordFreqCounter
         {
             try
             {
+                Console.WriteLine("开始统计……");
                 LoadAllWords();
                 Console.WriteLine("第一轮统计结束。");
                 LoadGoodWords();
