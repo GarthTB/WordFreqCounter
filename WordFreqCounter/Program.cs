@@ -27,8 +27,10 @@
 
         private static int GetFilter()
         {
-            Console.Write("请指定过滤频率，低于该频率的词将被忽略，留空则默认为2，可以为0：");
-            return int.TryParse(Console.ReadLine(), out int filter) ? filter : 2;
+            Console.Write("请指定过滤频率，低于该频率的词将被忽略，留空则默认为2：");
+            return (int.TryParse(Console.ReadLine(), out int filter) && filter > 0)
+                ? filter
+                : 2;
         }
 
         private static HashSet<int> GetExtraChars()
@@ -40,9 +42,17 @@
             return extraChars;
         }
 
+        private static int GetParallelNum()
+        {
+            Console.Write("请输入并行处理的线程数，留空则默认为CPU核数：");
+            return (int.TryParse(Console.ReadLine(), out int parallelNum) && parallelNum > 0)
+                ? parallelNum
+                : Environment.ProcessorCount;
+        }
+
         private static void Main(string[] args)
         {
-            if (args.Length == 4) RunWithArgs(args);
+            if (args.Length == 5) RunWithArgs(args);
             else RunWithoutArgs();
         }
 
@@ -51,25 +61,35 @@
         /// 第二个参数为读取的文件路径
         /// 第三个参数为过滤频率
         /// 第四个参数为要纳入的非中文字符
+        /// 第五个参数为并行处理的线程数
         /// </summary>
         /// <param name="args"></param>
         private static void RunWithArgs(string[] args)
         {
-            if (int.TryParse(args[0], out int wordLength) && !IsInvalidWordLength(wordLength))
+            try
             {
-                if (File.Exists(args[1]))
+                if (int.TryParse(args[0], out int wordLength) && !IsInvalidWordLength(wordLength))
                 {
-                    string writePath = Path.Combine(Path.GetDirectoryName(args[1]) ?? ".", $"{wordLength}字统计结果.txt");
-                    if (int.TryParse(args[2], out int filter))
+                    if (File.Exists(args[1]))
                     {
+                        string writePath = Path.Combine(Path.GetDirectoryName(args[1]) ?? ".", $"{wordLength}字统计结果.txt");
+                        int filter = (int.TryParse(args[2], out filter) && filter > 0)
+                            ? filter
+                            : 2;
+                        int parallelNum = (int.TryParse(args[4], out parallelNum) && parallelNum > 0)
+                            ? parallelNum
+                            : Environment.ProcessorCount;
                         HashSet<int> extraChars = new(0);
                         foreach (char c in args[3])
                             extraChars.Add(c);
-                        Counter.SetCounter(args[1], writePath, extraChars, wordLength, filter);
+                        Counter.SetCounter(args[1], writePath, extraChars, wordLength, filter, parallelNum);
                         Counter.Run();
                     }
+                    else throw new ArgumentException("文件不存在！");
                 }
+                else throw new ArgumentException("词长错误！");
             }
+            catch (ArgumentException e) { Console.WriteLine(e.Message); }
             Console.Write("按任意键退出。");
             Console.ReadKey();
         }
@@ -83,7 +103,8 @@
                 string writePath = Path.Combine(Path.GetDirectoryName(readPath) ?? ".", $"{wordLength}字统计结果.txt");
                 int filter = GetFilter();
                 HashSet<int> extraChars = GetExtraChars();
-                Counter.SetCounter(readPath, writePath, extraChars, wordLength, filter);
+                int parallelNum = GetParallelNum();
+                Counter.SetCounter(readPath, writePath, extraChars, wordLength, filter, parallelNum);
                 Counter.Run();
                 Console.Write("按任意键重新指定参数并进行新一轮统计。");
                 Console.ReadKey();

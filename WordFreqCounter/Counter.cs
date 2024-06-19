@@ -1,5 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace WordFreqCounter
@@ -9,32 +9,35 @@ namespace WordFreqCounter
         private static string _readPath = string.Empty;
         private static string _writePath = string.Empty;
         private static HashSet<int> _extraChars = new(0);
-        private static readonly Dictionary<string, int> _freqDict = new(131072);
-        private static readonly Dictionary<string, int> _resultDict = new(65536);
+        private static ConcurrentDictionary<string, int> _freqDict = new();
+        private static ConcurrentDictionary<string, int> _resultDict = new();
         private static int _wordLength;
         private static int _windowSize;
         private static int _filter;
+        private static int _parallelNum;
 
-        public static void SetCounter(string readPath, string writePath, HashSet<int> extraChars, int wordLength, int filter)
+        public static void SetCounter(string readPath, string writePath, HashSet<int> extraChars, int wordLength, int filter, int parallelNum)
         {
-            _freqDict.Clear();
-            _resultDict.Clear();
             _readPath = readPath;
             _writePath = writePath;
             _extraChars = extraChars;
             _wordLength = wordLength;
             _windowSize = wordLength * 2 - 1;
             _filter = filter;
+            _parallelNum = parallelNum;
+            _freqDict = new(parallelNum, 131072);
+            _resultDict = new(parallelNum, 65536);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void LoadAllWords()
         {
-            using StreamReader sr = new(_readPath, Encoding.UTF8);
-            while (!sr.EndOfStream)
+            Parallel.ForEach(File.ReadLines(_readPath),
+                new ParallelOptions { MaxDegreeOfParallelism = _parallelNum },
+                line =>
             {
                 int tail = 0;
-                var span = sr.ReadLine().AsSpan();
+                var span = line.AsSpan();
                 for (int head = 0; head < span.Length; head++)
                 {
                     var c = span[head];
@@ -46,23 +49,22 @@ namespace WordFreqCounter
                     if (head == tail + _wordLength - 1)
                     {
                         string word = new(span.Slice(tail, _wordLength));
-                        ref var freq = ref CollectionsMarshal.GetValueRefOrNullRef(_freqDict, word);
-                        if (Unsafe.IsNullRef(ref freq)) _freqDict.Add(word, 1);
-                        else freq++;
+                        _freqDict.AddOrUpdate(word, 1, (key, count) => count + 1);
                         tail++;
                     }
                 }
-            }
+            });
         }
 
         [MethodImpl(MethodImplOptions.AggressiveOptimization)]
         private static void LoadGoodWords()
         {
-            using StreamReader sr = new(_readPath, Encoding.UTF8);
-            while (!sr.EndOfStream)
+            Parallel.ForEach(File.ReadLines(_readPath),
+                new ParallelOptions { MaxDegreeOfParallelism = _parallelNum },
+                line =>
             {
                 int tail = 0;
-                var span = sr.ReadLine().AsSpan();
+                var span = line.AsSpan();
                 for (int head = 0; head < span.Length; head++)
                 {
                     var c = span[head];
@@ -78,7 +80,7 @@ namespace WordFreqCounter
                         for (int j = 0; j < _wordLength; j++)
                         {
                             string _word = new(span.Slice(tail + j, _wordLength));
-                            ref var _freq = ref CollectionsMarshal.GetValueRefOrNullRef(_freqDict, _word);
+                            int _freq = _freqDict[_word];
                             if (_freq < _filter) continue;
                             if (_freq > maxFreq)
                             {
@@ -88,12 +90,10 @@ namespace WordFreqCounter
                         }
                         tail += _wordLength;
                         if (maxFreq == 0) continue;
-                        ref var freq = ref CollectionsMarshal.GetValueRefOrNullRef(_resultDict, maxWord);
-                        if (Unsafe.IsNullRef(ref freq)) _resultDict.Add(maxWord, 1);
-                        else freq++;
+                        _resultDict.AddOrUpdate(maxWord, 1, (key, count) => count + 1);
                     }
                 }
-            }
+            });
         }
 
         private static IEnumerable<KeyValuePair<string, int>> Sort()
