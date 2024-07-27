@@ -1,96 +1,148 @@
 ﻿using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace WordFreqCounter
 {
     internal struct Counter
     {
+        private const char LO = '一';
+        private const char HI = '鿿';
         private static string _readPath = string.Empty;
         private static string _writePath = string.Empty;
         private static HashSet<int> _extraChars = new(0);
         private static ConcurrentDictionary<string, int> _freqDict = new();
         private static ConcurrentDictionary<string, int> _resultDict = new();
         private static int _wordLength;
-        private static int _windowSize;
+        private static int _wordLengthB;
+        private static int _windowSizeB;
         private static int _filter;
         private static int _parallelNum;
 
-        public static void SetCounter(string readPath, string writePath, HashSet<int> extraChars, int wordLength, int filter, int parallelNum)
+        public static void SetCounter(string readPath, string writePath, int wordLength, int filter, HashSet<int> extraChars, int parallelNum)
         {
             _readPath = readPath;
             _writePath = writePath;
-            _extraChars = extraChars;
             _wordLength = wordLength;
-            _windowSize = wordLength * 2 - 1;
-            _filter = filter;
+            _wordLengthB = wordLength - 1;
+            _windowSizeB = wordLength * 2 - 2;
+            _filter = filter - 1;
+            _extraChars = extraChars;
             _parallelNum = parallelNum;
             _freqDict = new(parallelNum, 131072);
             _resultDict = new(parallelNum, 65536);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static void LoadAllWords()
+        private static void LoadAllWordsA()
         {
             Parallel.ForEach(File.ReadLines(_readPath),
                 new ParallelOptions { MaxDegreeOfParallelism = _parallelNum },
-                line =>
+                static line =>
             {
                 int tail = 0;
                 var span = line.AsSpan();
                 for (int head = 0; head < span.Length; head++)
                 {
                     var c = span[head];
-                    if ((c < '一' || c > '鿿') && !_extraChars.Contains(c))
-                    {
+                    if ((c < LO || c > HI) && !_extraChars.Contains(c))
                         tail = head + 1;
-                        continue;
-                    }
-                    if (head == tail + _wordLength - 1)
+                    else if (head == tail + _wordLengthB)
                     {
-                        string word = new(span.Slice(tail, _wordLength));
-                        _freqDict.AddOrUpdate(word, 1, (key, count) => count + 1);
+                        _freqDict.AddOrUpdate(new string(span.Slice(tail, _wordLength)), 1, static (key, count) => count + 1);
                         tail++;
                     }
                 }
             });
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveOptimization)]
-        private static void LoadGoodWords()
+        private static void LoadAllWordsB()
         {
             Parallel.ForEach(File.ReadLines(_readPath),
                 new ParallelOptions { MaxDegreeOfParallelism = _parallelNum },
-                line =>
+                static line =>
             {
                 int tail = 0;
                 var span = line.AsSpan();
                 for (int head = 0; head < span.Length; head++)
                 {
                     var c = span[head];
-                    if ((c < '一' || c > '鿿') && !_extraChars.Contains(c))
-                    {
+                    if (c < LO || c > HI)
                         tail = head + 1;
-                        continue;
-                    }
-                    if (head == tail + _windowSize - 1)
+                    else if (head == tail + _wordLengthB)
                     {
-                        int maxFreq = 0;
-                        string maxWord = string.Empty;
+                        _freqDict.AddOrUpdate(new string(span.Slice(tail, _wordLength)), 1, static (key, count) => count + 1);
+                        tail++;
+                    }
+                }
+            });
+        }
+
+        private static void LoadGoodWordsA()
+        {
+            Parallel.ForEach(File.ReadLines(_readPath),
+                new ParallelOptions { MaxDegreeOfParallelism = _parallelNum },
+                static line =>
+            {
+                int tail = 0;
+                var span = line.AsSpan();
+                int maxFreq = 0;
+                var maxWord = string.Empty;
+                for (int head = 0; head < span.Length; head++)
+                {
+                    var c = span[head];
+                    if ((c < LO || c > HI) && !_extraChars.Contains(c))
+                        tail = head + 1;
+                    else if (head == tail + _windowSizeB)
+                    {
+                        maxFreq = 0;
                         for (int j = 0; j < _wordLength; j++)
                         {
                             string _word = new(span.Slice(tail + j, _wordLength));
                             int _freq = _freqDict[_word];
-                            if (_freq < _filter) continue;
-                            if (_freq > maxFreq)
+                            if (_freq > maxFreq && _freq > _filter)
                             {
                                 maxFreq = _freq;
                                 maxWord = _word;
                             }
                         }
                         tail += _wordLength;
-                        if (maxFreq == 0) continue;
-                        _resultDict.AddOrUpdate(maxWord, 1, (key, count) => count + 1);
+                        if (maxFreq > 0)
+                            _resultDict.AddOrUpdate(maxWord, 1, static (key, count) => count + 1);
+                    }
+                }
+            });
+        }
+
+        private static void LoadGoodWordsB()
+        {
+            Parallel.ForEach(File.ReadLines(_readPath),
+                new ParallelOptions { MaxDegreeOfParallelism = _parallelNum },
+                static line =>
+            {
+                int tail = 0;
+                var span = line.AsSpan();
+                int maxFreq = 0;
+                var maxWord = string.Empty;
+                for (int head = 0; head < span.Length; head++)
+                {
+                    var c = span[head];
+                    if (c < LO || c > HI)
+                        tail = head + 1;
+                    else if (head == tail + _windowSizeB)
+                    {
+                        maxFreq = 0;
+                        for (int j = 0; j < _wordLength; j++)
+                        {
+                            string _word = new(span.Slice(tail + j, _wordLength));
+                            int _freq = _freqDict[_word];
+                            if (_freq > maxFreq && _freq > _filter)
+                            {
+                                maxFreq = _freq;
+                                maxWord = _word;
+                            }
+                        }
+                        tail += _wordLength;
+                        if (maxFreq > 0)
+                            _resultDict.AddOrUpdate(maxWord, 1, static (key, count) => count + 1);
                     }
                 }
             });
@@ -98,8 +150,8 @@ namespace WordFreqCounter
 
         private static IEnumerable<KeyValuePair<string, int>> Sort()
         {
-            return _filter > 1
-                ? _resultDict.Where(x => x.Value >= _filter)
+            return _filter > 0
+                ? _resultDict.Where(x => x.Value > _filter)
                              .OrderByDescending(x => x.Value)
                 : _resultDict.OrderByDescending(x => x.Value);
         }
@@ -118,17 +170,23 @@ namespace WordFreqCounter
             try
             {
                 Console.WriteLine("开始统计……");
-                LoadAllWords();
-                Console.WriteLine("第一轮统计结束。");
-                LoadGoodWords();
+                if (_extraChars.Any())
+                {
+                    LoadAllWordsA();
+                    Console.WriteLine("第一轮统计结束。");
+                    LoadGoodWordsA();
+                }
+                else
+                {
+                    LoadAllWordsB();
+                    Console.WriteLine("第一轮统计结束。");
+                    LoadGoodWordsB();
+                }
                 Console.WriteLine("第二轮统计结束。");
                 Output(Sort());
                 Console.WriteLine("统计结束，词频文件已生成。");
             }
             catch (Exception ex)
-                when (ex is InvalidOperationException
-                         or IOException
-                         or ArgumentException)
             {
                 Console.WriteLine($"错误：{ex.Message}");
             }
