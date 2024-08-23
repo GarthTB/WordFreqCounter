@@ -6,12 +6,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <ApplicationIcon>favicon.ico</ApplicationIcon>
-    <Version>0.3.1</Version>
+    <StartupObject>WordFreqCounter.Program</StartupObject>
+    <Title>WordFreqCounter</Title>
+    <ApplicationIcon>Icons\favicon.ico</ApplicationIcon>
+    <PackageIcon>Icon.png</PackageIcon>
+    <Company>Garth</Company>
     <Authors>Garth</Authors>
-    <Copyright>©️ 2024 Garth</Copyright>
-    <PackageIcon>Freq.png</PackageIcon>
+    <Version>0.3.2</Version>
+    <Description>盲分词的高性能中文语料词频统计器。</Description>
+    <Copyright>Copyright (c) 2024 Garth. All rights reserved.</Copyright>
     <PlatformTarget>x64</PlatformTarget>
+    <NeutralLanguage>zh</NeutralLanguage>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/GarthTB/WordFreqCounter</RepositoryUrl>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -19,11 +26,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="favicon.ico" />
+    <Content Include="Icons\favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Freq.png">
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Icons\Icon.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>

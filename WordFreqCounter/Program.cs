@@ -38,8 +38,8 @@
             Console.Write("请输入一行要纳入的非中文字符，留空则只统计\\u4e00-\\u9fff：\n");
             HashSet<int> extraChars = new(0);
             foreach (char c in Console.ReadLine() ?? string.Empty)
-                extraChars.Add(c);
-            extraChars.RemoveWhere(c => c is > '䷿' and < 'ꀀ');
+                _ = extraChars.Add(c);
+            _ = extraChars.RemoveWhere(c => c is > '䷿' and < 'ꀀ');
             return extraChars;
         }
 
@@ -82,7 +82,7 @@
                             : Environment.ProcessorCount;
                         HashSet<int> extraChars = new(0);
                         foreach (char c in args[3])
-                            extraChars.Add(c);
+                            _ = extraChars.Add(c);
                         Counter.SetCounter(args[1], writePath, wordLength, filter, extraChars, parallelNum);
                         Counter.Run();
                     }
@@ -92,7 +92,7 @@
             }
             catch (ArgumentException e) { Console.WriteLine(e.Message); }
             Console.Write("按任意键退出。");
-            Console.ReadKey();
+            _ = Console.ReadKey();
         }
 
         private static void RunWithoutArgs()
@@ -108,7 +108,7 @@
                 Counter.SetCounter(readPath, writePath, wordLength, filter, extraChars, parallelNum);
                 Counter.Run();
                 Console.Write("按任意键重新指定参数并进行新一轮统计。");
-                Console.ReadKey();
+                _ = Console.ReadKey();
             }
         }
     }
