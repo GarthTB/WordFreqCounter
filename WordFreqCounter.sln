@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35005.142
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordFreqCounter", "WordFreqCounter\WordFreqCounter.csproj", "{AF20EA50-D86D-47BF-B1A9-4991B6FA4984}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WordFreqCounter", "WordFreqCounter\WordFreqCounter.csproj", "{F8ECA31A-E6AD-4FB2-A034-307E62B96626}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AF20EA50-D86D-47BF-B1A9-4991B6FA4984}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF20EA50-D86D-47BF-B1A9-4991B6FA4984}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AF20EA50-D86D-47BF-B1A9-4991B6FA4984}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AF20EA50-D86D-47BF-B1A9-4991B6FA4984}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8ECA31A-E6AD-4FB2-A034-307E62B96626}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8ECA31A-E6AD-4FB2-A034-307E62B96626}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8ECA31A-E6AD-4FB2-A034-307E62B96626}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8ECA31A-E6AD-4FB2-A034-307E62B96626}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

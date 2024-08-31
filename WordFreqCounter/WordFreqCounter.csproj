@@ -1,22 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <StartupObject>WordFreqCounter.Program</StartupObject>
+    <ApplicationIcon>Icon\favicon.ico</ApplicationIcon>
     <Title>WordFreqCounter</Title>
-    <ApplicationIcon>Icons\favicon.ico</ApplicationIcon>
-    <PackageIcon>Icon.png</PackageIcon>
-    <Company>Garth</Company>
+    <Version>0.4.0</Version>
     <Authors>Garth</Authors>
-    <Version>0.3.2</Version>
-    <Description>盲分词的高性能中文语料词频统计器。</Description>
-    <Copyright>Copyright (c) 2024 Garth. All rights reserved.</Copyright>
-    <PlatformTarget>x64</PlatformTarget>
-    <NeutralLanguage>zh</NeutralLanguage>
+    <Copyright>© Garth 2024</Copyright>
+    <PackageIcon>128.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/GarthTB/WordFreqCounter</RepositoryUrl>
   </PropertyGroup>
@@ -26,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="Icons\favicon.ico" />
+    <Content Include="Icon\favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Icons\Icon.png">
+    <None Update="Icon\128.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
