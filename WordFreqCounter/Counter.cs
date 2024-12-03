@@ -7,15 +7,15 @@ namespace WordFreqCounter
     {
         public static string fp = string.Empty, wp = string.Empty;
         public static int wl, th;
-        public static HashSet<char> ex = new();
+        private static int t_wl, t_wz;
+        public static HashSet<char> ex = [];
         public static Func<char, bool> IsShit = static c => false;
+        private static readonly ConcurrentDictionary<string, int> tempDict = new(), realDict = new();
 
         public static void Run()
         {
             try
             {
-                t_wl = wl - 1;
-                t_wz = t_wl * 2;
                 Console.WriteLine("开始第一轮统计...");
                 FirstRound();
                 Console.WriteLine("开始第二轮统计...");
@@ -30,11 +30,9 @@ namespace WordFreqCounter
             }
         }
 
-        private static readonly ConcurrentDictionary<string, int> tempDict = new(), realDict = new();
-        private static int t_wl, t_wz;
-
         private static void FirstRound()
         {
+            t_wl = wl - 1;
             _ = Parallel.ForEach(File.ReadLines(fp),
                 static line =>
                 {
@@ -55,6 +53,7 @@ namespace WordFreqCounter
 
         private static void SecondRound()
         {
+            t_wz = 2 * wl - 1 - 1;
             _ = Parallel.ForEach(File.ReadLines(fp),
                 static line =>
                 {
@@ -79,7 +78,7 @@ namespace WordFreqCounter
                                 }
                             }
                             head += wl;
-                            if (m_freq > 0)
+                            if (m_freq > th)
                                 _ = realDict.AddOrUpdate(m_word, 1, static (key, count) => count + 1);
                         }
                     }
