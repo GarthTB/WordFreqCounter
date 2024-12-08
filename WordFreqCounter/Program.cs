@@ -6,11 +6,11 @@
         {
             for (; ; )
             {
-                var fp = Tools.GetFilePath();
-                var wl = Tools.GetWordLen();
-                var wp = Tools.GetWritePath(fp, wl);
-                var th = Tools.GetThreshold();
-                var ex = Tools.GetExtraChars();
+                var fp = Init.GetFilePath();
+                var wl = Init.GetWordLen();
+                var wp = Init.GetWritePath(fp, wl);
+                var th = Init.GetThreshold();
+                var ex = Init.GetExtraChars();
                 Counter.IsShit = ex.Count != 0
                     ? ((char c) => c is < '一' or > '鿿' && !ex.Contains(c))
                     : ((char c) => c is < '一' or > '鿿');

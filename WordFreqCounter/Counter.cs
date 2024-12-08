@@ -5,94 +5,93 @@ namespace WordFreqCounter
 {
     internal static class Counter
     {
-        public static string fp = string.Empty, wp = string.Empty;
-        public static int wl, th;
-        private static int t_wl, t_wz;
-        public static HashSet<char> ex = [];
-        public static Func<char, bool> IsShit = static c => false;
-        private static readonly ConcurrentDictionary<string, int> tempDict = new(), realDict = new();
+        internal static string fp = string.Empty, wp = string.Empty;
+        internal static int wl, th;
+        internal static HashSet<char> ex = [];
+        internal static Func<char, bool> IsShit = static c => false;
 
-        public static void Run()
+        internal static void Run()
         {
             try
             {
                 Console.WriteLine("开始第一轮统计...");
-                FirstRound();
+                var tempDict = FirstRound();
                 Console.WriteLine("开始第二轮统计...");
-                SecondRound();
+                var finalDict = SecondRound(tempDict);
                 Console.WriteLine("统计完成！排序并保存中...");
-                SortAndSave();
+                SortAndSave(finalDict);
                 Console.WriteLine("完毕。词频文件已生成。");
             }
-            catch (Exception ex)
+            catch (Exception ex) { Console.WriteLine($"出错：{ex.Message}"); }
+        }
+
+        private static ConcurrentDictionary<string, int> FirstRound()
+        {
+            var t_wl = wl - 1;
+            ConcurrentDictionary<string, int> tempDict = new();
+            _ = Parallel.ForEach(File.ReadLines(fp), line =>
             {
-                Console.WriteLine($"出错：{ex.Message}");
-            }
-        }
-
-        private static void FirstRound()
-        {
-            t_wl = wl - 1;
-            _ = Parallel.ForEach(File.ReadLines(fp),
-                static line =>
+                var sb = new StringBuilder(line);
+                int head = 0, tail = 0;
+                for (; tail < line.Length; tail++)
                 {
-                    var sb = new StringBuilder(line);
-                    int head = 0, tail = 0;
-                    for (; tail < line.Length; tail++)
+                    if (IsShit(line[tail]))
+                        head = tail + 1;
+                    else if (tail == head + t_wl)
                     {
-                        if (IsShit(line[tail]))
-                            head = tail + 1;
-                        else if (tail == head + t_wl)
-                        {
-                            _ = tempDict.AddOrUpdate(sb.ToString(head, wl), 1, static (key, count) => count + 1);
-                            head++;
-                        }
+                        _ = tempDict.AddOrUpdate(
+                            sb.ToString(head, wl), 1, static (key, count) => count + 1);
+                        head++;
                     }
-                });
+                }
+            });
+            return tempDict;
         }
 
-        private static void SecondRound()
+        private static ConcurrentDictionary<string, int> SecondRound(ConcurrentDictionary<string, int> tempDict)
         {
-            t_wz = 2 * wl - 1 - 1;
-            _ = Parallel.ForEach(File.ReadLines(fp),
-                static line =>
+            var t_wz = 2 * wl - 1 - 1;
+            ConcurrentDictionary<string, int> finalDict = new();
+            _ = Parallel.ForEach(File.ReadLines(fp), line =>
+            {
+                var sb = new StringBuilder(line);
+                int head = 0, tail = 0, m_freq, freq;
+                string m_word = string.Empty, word;
+                for (; tail < line.Length; tail++)
                 {
-                    var sb = new StringBuilder(line);
-                    int head = 0, tail = 0, m_freq, freq;
-                    string m_word = string.Empty, word;
-                    for (; tail < line.Length; tail++)
+                    if (IsShit(line[tail]))
+                        head = tail + 1;
+                    else if (tail == head + t_wz)
                     {
-                        if (IsShit(line[tail]))
-                            head = tail + 1;
-                        else if (tail == head + t_wz)
+                        m_freq = 0;
+                        for (int i = 0; i < wl; i++)
                         {
-                            m_freq = 0;
-                            for (int i = 0; i < wl; i++)
+                            word = sb.ToString(head + i, wl);
+                            freq = tempDict[word];
+                            if (freq > m_freq)
                             {
-                                word = sb.ToString(head + i, wl);
-                                freq = tempDict[word];
-                                if (freq > m_freq)
-                                {
-                                    m_freq = freq;
-                                    m_word = word;
-                                }
+                                m_freq = freq;
+                                m_word = word;
                             }
-                            head += wl;
-                            if (m_freq > th)
-                                _ = realDict.AddOrUpdate(m_word, 1, static (key, count) => count + 1);
                         }
+                        head += wl;
+                        if (m_freq > th)
+                            _ = finalDict.AddOrUpdate(
+                                m_word, 1, static (key, count) => count + 1);
                     }
-                });
+                }
+            });
+            return finalDict;
         }
 
-        private static void SortAndSave()
+        private static void SortAndSave(ConcurrentDictionary<string, int> finalDict)
         {
             var sorted = th > 0
-                ? realDict.AsParallel()
-                          .Where(x => x.Value > th)
-                          .OrderByDescending(x => x.Value)
-                : realDict.AsParallel()
-                          .OrderByDescending(x => x.Value);
+                ? finalDict.AsParallel()
+                           .Where(x => x.Value > th)
+                           .OrderByDescending(x => x.Value)
+                : finalDict.AsParallel()
+                           .OrderByDescending(x => x.Value);
 
             var sb = new StringBuilder();
             foreach (var item in sorted)

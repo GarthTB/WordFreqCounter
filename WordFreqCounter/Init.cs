@@ -1,8 +1,8 @@
 ﻿namespace WordFreqCounter
 {
-    internal static class Tools
+    internal static class Init
     {
-        public static string GetFilePath()
+        internal static string GetFilePath()
         {
             Console.WriteLine("请指定语料文件：");
             var filePath = Console.ReadLine();
@@ -14,7 +14,7 @@
             return filePath;
         }
 
-        public static string GetWritePath(string fp, int wl)
+        internal static string GetWritePath(string fp, int wl)
         {
             var dir = Path.GetDirectoryName(fp)
                 ?? throw new InvalidOperationException();
@@ -22,7 +22,7 @@
             return Path.Combine(dir, $"{name}_{wl}字词频统计结果.txt");
         }
 
-        public static int GetWordLen()
+        internal static int GetWordLen()
         {
             Console.WriteLine("请指定词长：");
             var input = Console.ReadLine();
@@ -35,7 +35,7 @@
             return wordLen;
         }
 
-        public static int GetThreshold()
+        internal static int GetThreshold()
         {
             Console.WriteLine("请指定阈值，此次数及以下的词将被忽略，默认值为1：");
             var input = Console.ReadLine();
@@ -43,7 +43,7 @@
                 ? threshold : 1;
         }
 
-        public static HashSet<char> GetExtraChars()
+        internal static HashSet<char> GetExtraChars()
         {
             Console.WriteLine("请指定需要纳入的额外字符，回车结束，若无请留空：");
             var extraChars = Console.ReadLine();
