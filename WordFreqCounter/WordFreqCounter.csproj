@@ -35,10 +35,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="ILGPU" Version="1.5.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Icon\128.png">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
