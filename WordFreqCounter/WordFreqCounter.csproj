@@ -8,7 +8,7 @@
         <StartupObject>WordFreqCounter.Program</StartupObject>
         <PublishAot>True</PublishAot>
         <Title>WordFreqCounter</Title>
-        <Version>0.5.0</Version>
+        <Version>0.5.1</Version>
         <Company>GarthTB</Company>
         <Authors>GarthTB</Authors>
         <PackageIcon>Icon\256.png</PackageIcon>
